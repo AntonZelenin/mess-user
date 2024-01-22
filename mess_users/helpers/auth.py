@@ -4,7 +4,7 @@ from result import Result, Ok, Err
 from mess_users import constants
 
 
-def create_user_in_auth(user_id: str, username: str, password: str) -> Result[bool, str]:
+def create_user_in_auth(user_id: str, username: str, password: str) -> Result[bool, dict]:
     try:
         res = requests.post(
             f"{constants.AUTH_URL}/api/v1/users",
@@ -18,6 +18,16 @@ def create_user_in_auth(user_id: str, username: str, password: str) -> Result[bo
 
         return Ok(True)
     except requests.HTTPError as e:
-        return Err(e.response.text)
+        if e.response.status_code == 400:
+            return Err(e.response.json())
+        return Err({
+            'errors': {
+                'auth_error': [e.response],
+            },
+        })
     except Exception as e:
-        return Err(str(e))
+        return Err({
+            'errors': {
+                'exception': [str(e)],
+            },
+        })

@@ -1,4 +1,9 @@
-from fastapi import FastAPI, HTTPException, status
+from collections import defaultdict
+
+from fastapi import FastAPI, status
+from fastapi.encoders import jsonable_encoder
+from fastapi.responses import JSONResponse
+from fastapi.exceptions import RequestValidationError
 from result import Ok, Err
 
 from mess_users import repository, helpers
@@ -8,21 +13,46 @@ from mess_users.schemas import UserRegisterData
 app = FastAPI()
 
 
+@app.exception_handler(RequestValidationError)
+async def custom_form_validation_error(_, exc):
+    reformatted_message = defaultdict(list)
+    for pydantic_error in exc.errors():
+        loc, msg = pydantic_error["loc"], pydantic_error["msg"]
+        filtered_loc = loc[1:] if loc[0] in ("body", "query", "path") else loc
+        field_string = ".".join(filtered_loc)  # nested fields with dot-notation
+        reformatted_message[field_string].append(msg)
+
+    return JSONResponse(
+        status_code=status.HTTP_400_BAD_REQUEST,
+        content=jsonable_encoder(
+            {"errors": reformatted_message}
+        ),
+    )
+
+
 @app.post("/api/v1/users")
 async def register(user_data: UserRegisterData):
     if repository.username_exists(user_data.username):
-        raise HTTPException(
+        return JSONResponse(
             status_code=status.HTTP_400_BAD_REQUEST,
-            detail="This username is already taken",
+            content={'errors': {'username': 'This username is already taken'}},
         )
+
     user = repository.create_user(user_data.username)
 
     match helpers.auth.create_user_in_auth(user.id, user.username, user_data.password):
         case Ok(_):
-            return {"success": "true"}
+            return {}
         case Err(message):
             repository.delete_user(user.id)
-            raise HTTPException(
+            return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
-                detail=message,
+                content=message,
             )
+
+
+# TODO: add auth
+@app.get("/api/v1/users/")
+async def find_users(username: str):
+    users = repository.search_users(username)
+    return [user.username for user in users]

@@ -17,3 +17,7 @@ def delete_user(user_id: str) -> None:
 
 def username_exists(username: str) -> bool:
     return session.query(User).filter(User.username == username).first() is not None
+
+
+def search_users(username: str) -> list[User]:
+    return session.query(User).filter(User.username.like(f"%{username}%")).all()
