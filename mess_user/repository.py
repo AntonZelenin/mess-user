@@ -1,5 +1,5 @@
-from mess_users.db import session
-from mess_users.models.user import User
+from mess_user.db import session
+from mess_user.models.user import User
 
 
 def create_user(username: str) -> User:

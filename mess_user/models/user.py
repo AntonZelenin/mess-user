@@ -1,8 +1,8 @@
 from sqlalchemy import Boolean, String
 from sqlalchemy.orm import mapped_column, Mapped
 
-from mess_users import helpers
-from mess_users.models import Base
+from mess_user import helpers
+from mess_user.models import Base
 
 
 class User(Base):

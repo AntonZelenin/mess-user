@@ -1,7 +1,7 @@
 import requests
 from result import Result, Ok, Err
 
-from mess_users import constants
+from mess_user import constants
 
 
 def create_user_in_auth(user_id: str, username: str, password: str) -> Result[bool, dict]:

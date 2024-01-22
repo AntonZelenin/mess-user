@@ -6,9 +6,9 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from result import Ok, Err
 
-from mess_users import repository, helpers
-from mess_users.helpers import auth
-from mess_users.schemas import UserRegisterData
+from mess_user import repository, helpers
+from mess_user.helpers import auth
+from mess_user.schemas import UserRegisterData
 
 app = FastAPI()
 
