@@ -1,16 +1,37 @@
 from collections import defaultdict
 
-from fastapi import FastAPI, status
+from fastapi import FastAPI, status, Header, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
+from fastapi.exceptions import RequestValidationError, HTTPException
 from result import Ok, Err
 
 from mess_user import repository, helpers
 from mess_user.helpers import auth
+from mess_user.models.user import User
 from mess_user.schemas import UserRegisterData
 
 app = FastAPI()
+
+
+async def get_current_active_user(x_user_id: str = Header(None)) -> User:
+    if x_user_id is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    user = repository.get_user(x_user_id)
+    if user is None:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    if not user.is_active:
+        raise HTTPException(
+            status_code=status.HTTP_401_UNAUTHORIZED,
+        )
+
+    return user
 
 
 @app.exception_handler(RequestValidationError)
@@ -51,8 +72,7 @@ async def register(user_data: UserRegisterData):
             )
 
 
-# TODO: add auth
 @app.get("/api/v1/users/")
-async def find_users(username: str):
+async def find_users(username: str, _: User = Depends(get_current_active_user)):
     users = repository.search_users(username)
     return [user.username for user in users]

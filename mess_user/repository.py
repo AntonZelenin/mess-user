@@ -1,5 +1,11 @@
+from typing import Optional
+
 from mess_user.db import session
 from mess_user.models.user import User
+
+
+def get_user(user_id: str) -> Optional[User]:
+    return session.query(User).filter(User.id == user_id).first()
 
 
 def create_user(username: str) -> User:
