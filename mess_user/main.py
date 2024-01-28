@@ -7,7 +7,7 @@ from fastapi.exceptions import RequestValidationError
 from result import Ok, Err
 
 from mess_user import repository, helpers
-from mess_user.helpers import auth
+from mess_user.helpers import user
 from mess_user.models.user import User
 from mess_user.schemas import UserRegisterData
 
@@ -39,13 +39,13 @@ async def register(user_data: UserRegisterData):
             content={'errors': {'username': 'This username is already taken'}},
         )
 
-    user = repository.create_user(user_data.username)
+    user_ = repository.create_user(user_data.username)
 
-    match helpers.auth.create_user_in_auth(user.id, user.username, user_data.password):
+    match helpers.user.create_user_in_auth(user_.id, user_.username, user_data.password):
         case Ok(_):
             return {}
         case Err(message):
-            repository.delete_user(user.id)
+            repository.delete_user(user_.id)
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
                 content=message,
@@ -53,6 +53,6 @@ async def register(user_data: UserRegisterData):
 
 
 @app.get("/api/v1/users/")
-async def find_users(username: str, _: User = Depends(helpers.auth.get_current_active_user)):
+async def find_users(username: str, _: User = Depends(helpers.user.get_current_active_user)):
     users = repository.search_users(username)
-    return [user.username for user in users]
+    return [u.username for u in users]

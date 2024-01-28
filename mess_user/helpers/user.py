@@ -35,6 +35,7 @@ def create_user_in_auth(user_id: str, username: str, password: str) -> Result[bo
         })
 
 
+# todo do I need user from db? auth checks everything and provides user_id, maybe I can only work with it
 async def get_current_active_user(x_user_id: str = Header(None)) -> User:
     if x_user_id is None:
         raise HTTPException(
