@@ -2,14 +2,14 @@ import requests
 from fastapi import status, Header, HTTPException
 from result import Result, Ok, Err
 
-from mess_user import constants, repository
+from mess_user import constants, repository, settings
 from mess_user.models.user import User
 
 
 def create_user_in_auth(user_id: str, username: str, password: str) -> Result[bool, dict]:
     try:
         res = requests.post(
-            f"{constants.AUTH_URL}/api/v1/users",
+            f"{settings.get_settings().auth_url}/api/v1/users",
             json={
                 "user_id": user_id,
                 "username": username,
