@@ -31,7 +31,7 @@ async def custom_form_validation_error(_, exc):
     )
 
 
-@app.post("/api/v1/users")
+@app.post("/api/user/v1/users")
 async def register(user_data: UserRegisterData):
     if repository.username_exists(user_data.username):
         return JSONResponse(
@@ -52,7 +52,7 @@ async def register(user_data: UserRegisterData):
             )
 
 
-@app.get("/api/v1/users/")
+@app.get("/api/user/v1/users")
 async def find_users(username: str, _: User = Depends(helpers.user.get_current_active_user)):
     users = repository.search_users(username)
     return [u.username for u in users]
