@@ -9,7 +9,8 @@ from mess_user.models.user import User
 def create_user_in_auth(user_id: str, username: str, password: str) -> Result[bool, dict]:
     try:
         res = requests.post(
-            f"{settings.get_settings().auth_url}/api/v1/users",
+            # todo it depends on auth api route, I guess provide it from outside
+            f"{settings.get_settings().auth_url}/api/auth/v1/users",
             json={
                 "user_id": user_id,
                 "username": username,

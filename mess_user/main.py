@@ -45,6 +45,7 @@ async def register(user_data: UserRegisterData):
         case Ok(_):
             return {}
         case Err(message):
+            # todo it always returns 400, even if auth is down and it should be 500
             repository.delete_user(user_.id)
             return JSONResponse(
                 status_code=status.HTTP_400_BAD_REQUEST,
