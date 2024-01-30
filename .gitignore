@@ -1,4 +1,4 @@
 .idea/
 __pycache__/
-mess-users.db
+mess-user.db
 *.env
