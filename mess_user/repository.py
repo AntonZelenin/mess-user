@@ -1,4 +1,4 @@
-from typing import Optional
+from typing import Optional, Sequence
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
@@ -29,5 +29,5 @@ async def username_exists(session: AsyncSession, username: str) -> bool:
     return (await session.scalars(select(User).filter(User.username == username))).first() is not None
 
 
-async def search_users(session: AsyncSession, username: str) -> list[User]:
+async def search_users(session: AsyncSession, username: str) -> Sequence[User]:
     return (await session.scalars(select(User).filter(User.username.like(f"%{username}%")))).all()
