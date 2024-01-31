@@ -1,29 +1,33 @@
 from typing import Optional
 
-from mess_user.db import session
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
 from mess_user.models.user import User
 
 
-def get_user(user_id: str) -> Optional[User]:
-    return session.query(User).filter(User.id == user_id).first()
+async def get_user(session: AsyncSession, user_id: str) -> Optional[User]:
+    return (await session.scalars(select(User).filter(User.id == user_id))).first()
 
 
-def create_user(username: str) -> User:
+async def create_user(session: AsyncSession, username: str) -> User:
     user = User(username=username)
     session.add(user)
-    session.commit()
+    await session.commit()
+    await session.refresh(user)
 
     return user
 
 
-def delete_user(user_id: str) -> None:
-    session.query(User).filter(User.id == user_id).delete()
-    session.commit()
+async def delete_user(session: AsyncSession, user_id: str) -> None:
+    user = await session.scalar(select(User).filter(User.id == user_id))
+    await session.delete(user)
+    await session.commit()
 
 
-def username_exists(username: str) -> bool:
-    return session.query(User).filter(User.username == username).first() is not None
+async def username_exists(session: AsyncSession, username: str) -> bool:
+    return (await session.scalars(select(User).filter(User.username == username))).first() is not None
 
 
-def search_users(username: str) -> list[User]:
-    return session.query(User).filter(User.username.like(f"%{username}%")).all()
+async def search_users(session: AsyncSession, username: str) -> list[User]:
+    return (await session.scalars(select(User).filter(User.username.like(f"%{username}%")))).all()

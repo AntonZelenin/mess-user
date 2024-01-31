@@ -8,6 +8,7 @@ from mess_user import constants
 
 class Settings(BaseSettings):
     db_url: str
+    async_db_url: str
     auth_url: str
 
     def __init__(self):

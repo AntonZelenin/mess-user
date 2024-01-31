@@ -1,4 +1,4 @@
 .idea/
 __pycache__/
-mess-user.db
+*.sqlite3
 *.env
