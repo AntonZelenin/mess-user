@@ -1,22 +1,18 @@
 from collections import defaultdict
-from typing import Annotated
 
 from fastapi import FastAPI, status, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError
 from result import Ok, Err
-from sqlalchemy.ext.asyncio import AsyncSession
 
 from mess_user import repository, helpers
-from mess_user.db import get_db_session
+from mess_user.deps import DBSessionDep
 from mess_user.helpers import user
 from mess_user.models.user import User
 from mess_user.schemas import UserRegisterData
 
 app = FastAPI()
-
-DBSessionDep = Annotated[AsyncSession, Depends(get_db_session)]
 
 
 @app.exception_handler(RequestValidationError)
