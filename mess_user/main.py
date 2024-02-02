@@ -1,12 +1,13 @@
 from collections import defaultdict
 
+import httpx
 from fastapi import FastAPI, status, Depends
 from fastapi.encoders import jsonable_encoder
 from fastapi.responses import JSONResponse
-from fastapi.exceptions import RequestValidationError
+from fastapi.exceptions import RequestValidationError, HTTPException
 from result import Ok, Err
 
-from mess_user import repository, helpers
+from mess_user import repository, helpers, settings
 from mess_user.deps import DBSessionDep
 from mess_user.helpers import user
 from mess_user.models.user import User
@@ -45,7 +46,7 @@ async def register(user_data: UserRegisterData, session: DBSessionDep):
     try:
         match helpers.user.create_user_in_auth(user_.id, user_.username, user_data.password):
             case Ok(_):
-                return {}
+                return await login(user_data)
             case Err(message):
                 # todo it always returns 400, even if auth is down and it should be 500
                 await repository.delete_user(session, user_.id)
@@ -56,6 +57,17 @@ async def register(user_data: UserRegisterData, session: DBSessionDep):
     except Exception as e:
         await repository.delete_user(session, user_.id)
         raise e
+
+
+async def login(user_data: UserRegisterData):
+    async with httpx.AsyncClient() as client:
+        response = await client.post(
+            settings.get_settings().auth_url + '/api/auth/v1/login',
+            data={"username": user_data.username, "password": user_data.password}
+        )
+        if response.status_code != 200:
+            raise HTTPException(status_code=response.status_code, detail="Login service failed")
+        return response.json()
 
 
 @app.get('/api/user/v1/users')
