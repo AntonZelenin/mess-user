@@ -11,7 +11,7 @@ from mess_user import repository, helpers, settings
 from mess_user.deps import DBSessionDep
 from mess_user.helpers import user
 from mess_user.models.user import User
-from mess_user.schemas import UserRegisterData, GetUserIdsByUsernamesRequest
+from mess_user.schemas import UserRegisterData, GetUserIdsByUsernamesRequest, SearchUsersResponse, SearchUser
 
 app = FastAPI()
 
@@ -71,11 +71,12 @@ async def login(user_data: UserRegisterData):
 
 
 @app.get('/api/user/v1/users')
-async def find_users(username: str, session: DBSessionDep, _: User = Depends(helpers.user.get_current_active_user)):
+async def find_users(username: str, session: DBSessionDep, _: User = Depends(helpers.user.get_current_active_user)) -> SearchUsersResponse:
     users = await repository.search_users(session, username)
-    return [u.username for u in users]
+    return SearchUsersResponse(users=[SearchUser(user_id=u.id, username=u.username) for u in users])
 
 
+# todo I'm not sure it is still used
 # this endpoint is not available for users so doesn't check if user is active
 @app.post('/api/user/v1/users/ids')
 async def get_user_ids_by_username(req: GetUserIdsByUsernamesRequest, session: DBSessionDep) -> dict:

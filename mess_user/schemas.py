@@ -8,3 +8,12 @@ class UserRegisterData(BaseModel):
 
 class GetUserIdsByUsernamesRequest(BaseModel):
     usernames: list[str]
+
+
+class SearchUser(BaseModel):
+    user_id: str
+    username: str
+
+
+class SearchUsersResponse(BaseModel):
+    users: list[SearchUser]
