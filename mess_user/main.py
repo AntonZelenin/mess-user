@@ -73,7 +73,7 @@ async def login(user_data: UserRegisterData):
 @app.get('/api/user/v1/users')
 async def find_users(username: str, session: DBSessionDep, _: User = Depends(helpers.user.get_current_active_user)) -> SearchUsersResponse:
     users = await repository.search_users(session, username)
-    return SearchUsersResponse(users=[SearchUser(user_id=u.id, username=u.username) for u in users])
+    return SearchUsersResponse(users=[SearchUser(username=u.username) for u in users])
 
 
 # todo I'm not sure it is still used

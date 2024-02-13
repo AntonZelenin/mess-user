@@ -11,7 +11,6 @@ class GetUserIdsByUsernamesRequest(BaseModel):
 
 
 class SearchUser(BaseModel):
-    user_id: str
     username: str
 
 
