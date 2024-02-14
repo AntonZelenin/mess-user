@@ -29,8 +29,18 @@ async def username_exists(session: AsyncSession, username: str) -> bool:
     return (await session.scalars(select(User).filter(User.username == username))).first() is not None
 
 
-async def search_users(session: AsyncSession, username_like: str, limit: int = 20) -> Sequence[User]:
-    return (await session.scalars(select(User).filter(User.username.like(f"%{username_like}%")).limit(limit))).all()
+async def search_users(
+        session: AsyncSession,
+        username_like: str,
+        limit: int = 20,
+        *,
+        exclude_username: Optional[str] = None,
+) -> Sequence[User]:
+    query = select(User).filter(User.username.like(f"%{username_like}%")).limit(limit)
+    if exclude_username:
+        query = query.filter(User.username != exclude_username)
+
+    return (await session.scalars(query)).all()
 
 
 async def get_user_ids_by_username(session: AsyncSession, usernames: list[str]) -> Sequence[str]:
