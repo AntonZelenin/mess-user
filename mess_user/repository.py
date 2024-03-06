@@ -43,8 +43,5 @@ async def search_users(
     return (await session.scalars(query)).all()
 
 
-async def get_user_ids_by_username(session: AsyncSession, usernames: list[str]) -> Sequence[str]:
-    return [
-        user.id
-        for user in (await session.scalars(select(User).filter(User.username.in_(usernames)))).all()
-    ]
+async def get_users(session: AsyncSession, user_ids: list[str]) -> Sequence[User]:
+    return (await session.scalars(select(User).filter(User.id.in_(user_ids)))).all()

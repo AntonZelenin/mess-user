@@ -7,11 +7,11 @@ from fastapi.responses import JSONResponse
 from fastapi.exceptions import RequestValidationError, HTTPException
 from result import Ok, Err
 
-from mess_user import repository, helpers, settings
+from mess_user import repository, helpers, settings, schemas
 from mess_user.deps import DBSessionDep
 from mess_user.helpers import user
 from mess_user.models.user import User
-from mess_user.schemas import UserRegisterData, GetUserIdsByUsernamesRequest, SearchUsersResponse, SearchUser
+from mess_user.schemas import UserRegisterData, GetUsersByIdsRequest, SearchUsersResponse
 
 app = FastAPI()
 
@@ -59,11 +59,11 @@ async def register(user_data: UserRegisterData, session: DBSessionDep):
         raise e
 
 
-async def login(user_data: UserRegisterData):
+async def login(register_data: UserRegisterData):
     async with httpx.AsyncClient() as client:
         response = await client.post(
             settings.get_settings().auth_url + '/api/auth/v1/login',
-            data={"username": user_data.username, "password": user_data.password}
+            data={"username": register_data.username, "password": register_data.password}
         )
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail="Login service failed")
@@ -77,14 +77,13 @@ async def find_users(
         user_: User = Depends(helpers.user.get_current_active_user),
 ) -> SearchUsersResponse:
     users = await repository.search_users(session, username, exclude_username=user_.username)
-    return SearchUsersResponse(users=[SearchUser(username=u.username) for u in users])
+    return SearchUsersResponse(users=[schemas.User(id=u.id, username=u.username) for u in users])
 
 
-# todo I'm not sure it is still used
-# this endpoint is not available for users so doesn't check if user is active
-@app.post('/api/user/v1/users/ids')
-async def get_user_ids_by_username(req: GetUserIdsByUsernamesRequest, session: DBSessionDep) -> dict:
-    # todo what if some usernames are not found?
-    return {
-        'user_ids': list(await repository.get_user_ids_by_username(session, req.usernames))
-    }
+@app.post('/api/user/v1/users/batch-query')
+async def get_users_by_ids(req: GetUsersByIdsRequest, session: DBSessionDep) -> SearchUsersResponse:
+    if len(req.user_ids) == 0:
+        return SearchUsersResponse(users=[])
+
+    db_users = await repository.get_users(session, req.user_ids)
+    return SearchUsersResponse(users=[schemas.User(id=db_user.id, username=db_user.username) for db_user in db_users])

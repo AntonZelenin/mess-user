@@ -38,13 +38,13 @@ def create_user_in_auth(user_id: str, username: str, password: str) -> Result[bo
 
 
 # todo do I need user from db? auth checks everything and provides user_id, maybe I can only work with it
-async def get_current_active_user(session: DBSessionDep, x_sub: str = Header(None)) -> User:
-    if x_sub is None:
+async def get_current_active_user(session: DBSessionDep, x_user_id: str = Header(None)) -> User:
+    if x_user_id is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,
         )
 
-    user = await repository.get_user(session, x_sub)
+    user = await repository.get_user(session, x_user_id)
     if user is None:
         raise HTTPException(
             status_code=status.HTTP_401_UNAUTHORIZED,

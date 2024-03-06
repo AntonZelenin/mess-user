@@ -6,13 +6,18 @@ class UserRegisterData(BaseModel):
     password: str = Field(min_length=8, max_length=64)
 
 
-class GetUserIdsByUsernamesRequest(BaseModel):
-    usernames: list[str]
+class GetUsersByIdsRequest(BaseModel):
+    user_ids: list[str]
 
 
-class SearchUser(BaseModel):
+class SearchUserRequest(BaseModel):
+    username: str
+
+
+class User(BaseModel):
+    id: str
     username: str
 
 
 class SearchUsersResponse(BaseModel):
-    users: list[SearchUser]
+    users: list[User]
