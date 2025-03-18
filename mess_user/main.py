@@ -63,7 +63,7 @@ async def login(register_data: UserRegisterData):
     async with httpx.AsyncClient() as client:
         response = await client.post(
             settings.get_settings().auth_url + '/api/auth/v1/login',
-            data={"username": register_data.username, "password": register_data.password}
+            json={"username": register_data.username, "password": register_data.password}
         )
         if response.status_code != 200:
             raise HTTPException(status_code=response.status_code, detail="Login service failed")
